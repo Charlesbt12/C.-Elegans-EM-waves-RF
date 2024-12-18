@@ -2,10 +2,10 @@ library(randomForest)
 library(datasets)
 library(caret)
 UFdata<-All.worm.video.trait.features
-data<-UFdata[!rowSums(is.na(UFdata)) > ncol(UFdata)*.3,]
+data<-UFdata[!rowSums(is.na(UFdata)) > ncol(UFdata)*.1,] #Places NA filter, number at end determines the percentage of NA's a collumn has to be before it is dropped, in this case 10% is chosen,
 str(data)
 data[is.na(data)] <- 0
-data$fileid <- as.factor(data$fileid)
+data$fileid <- as.factor(data$fileid) #sets wave type as factor variable
 table(data$fileid)
 set.seed(222)
 ind <- sample(2, nrow(data), replace = TRUE, prob = c(0.7, 0.3))
