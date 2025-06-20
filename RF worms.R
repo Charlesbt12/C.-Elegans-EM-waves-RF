@@ -1,7 +1,7 @@
 library(randomForest)
 library(datasets)
 library(caret)
-UFdata<-All.worm.video.trait.features
+UFdata<-ALL.C.ELEGAN.DATA.SUMMARYmodified
 data<-UFdata[!rowSums(is.na(UFdata)) > ncol(UFdata)*.1,] #Places NA filter, number at end determines the percentage of NA's a collumn has to be before it is dropped, in this case 10% is chosen,
 str(data)
 data[is.na(data)] <- 0
