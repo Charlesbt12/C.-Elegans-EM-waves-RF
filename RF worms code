@@ -1,0 +1,62 @@
+library(randomForest)
+library(datasets)
+library(caret)
+UFdata<-LIGHTSOURCEMEGA12
+data<-UFdata[!rowSums(is.na(UFdata)) > ncol(UFdata)*.1,] #Places NA filter, number at end determines the percentage of NA's a column has to be before it is dropped, in this case 10% is chosen,
+str(data)
+data[is.na(data)] <- 0
+data$fileid <- as.factor(data$fileid) #sets wave type as factor variable
+table(data$fileid)
+set.seed(222)
+ind <- sample(2, nrow(data), replace = TRUE, prob = c(0.7, 0.3))
+train <- data[ind==1,]
+test <- data[ind==2,]
+rf <- randomForest(fileid~., data=train, proximity=TRUE, na.action=na.roughfix)
+print(rf)
+p1 <- predict (rf, train)
+c1<-confusionMatrix(p1, train$ fileid)
+cm_norm <- prop.table(c1$table, margin = 2)
+cm_norm_df <- as.data.frame(cm_norm)
+
+ggplot(cm_norm_df, aes(x = Reference, y = Prediction, fill = Freq)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = scales::percent(Freq, accuracy = 0.1)), size = 5) +
+    scale_fill_gradient(low = "white", high = "darkgreen") +
+    labs(
+        title = "Normalized Training Confusion Matrix",
+        x = "Actual",
+        y = "Predicted"
+    ) +
+    theme_minimal()
+print(c1)
+p2 <- predict(rf, test)
+c2<-confusionMatrix(p2, test$ fileid)
+cm_test_norm <- prop.table(c2$table, margin = 2)
+cm_test_norm_df <- as.data.frame(cm_test_norm)
+
+ggplot(cm_test_norm_df, aes(x = Reference, y = Prediction, fill = Freq)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = scales::percent(Freq, accuracy = 0.1)), size = 5) +
+    scale_fill_gradient(low = "white", high = "darkred") +
+    labs(
+        title = "Normalized Testing Confusion Matrix",
+        x = "Actual",
+        y = "Predicted"
+    ) +
+    theme_minimal()
+print(c2)
+plot(rf)
+t <- tuneRF(train[,-5], train[,5],
+            stepFactor = 0.5,
+            plot = TRUE,
+            ntreeTry = 150,
+            trace = TRUE,
+            improve = 0.05)
+hist(treesize(rf),
+     main = "No. of Nodes for the Trees",
+     col = "green")
+varImpPlot(rf,
+           sort = T,
+           n.var = 10,
+           main = "Top 10 - Variable Importance")
+importance(rf)
